@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bike Suspension Setup Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚴 Bike Suspension Setup Calculator</h1>
+            <p class="subtitle">Calculate optimal suspension settings for your bike</p>
+        </header>
+
+        <main>
+            <div class="calculator-container">
+                <!-- Input Section -->
+                <section class="input-section">
+                    <h2>Bike & Rider Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="bikeModel">Bike Model (Optional)</label>
+                        <select id="bikeModel">
+                            <option value="">Custom Setup</option>
+                            <option value="trek-supercaliber">Trek Supercaliber</option>
+                            <option value="specialized-epic">Specialized Epic</option>
+                            <option value="santa-cruz-blur">Santa Cruz Blur</option>
+                            <option value="yeti-sb100">Yeti SB100</option>
+                            <option value="ibis-ripmo">Ibis Ripmo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="riderWeight">Rider Weight</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="riderWeight" placeholder="Enter weight" min="0" step="0.1">
+                            <select id="weightUnit">
+                                <option value="lbs">lbs</option>
+                                <option value="kg">kg</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="suspensionTravel">Suspension Travel (mm)</label>
+                        <input type="number" id="suspensionTravel" placeholder="e.g., 120" min="0" step="5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ridingStyle">Riding Style</label>
+                        <select id="ridingStyle">
+                            <option value="xc">XC - Cross Country</option>
+                            <option value="trail">Trail</option>
+                            <option value="enduro">Enduro</option>
+                            <option value="dh">DH - Downhill</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="forkTravel">Fork Travel (mm)</label>
+                        <input type="number" id="forkTravel" placeholder="e.g., 120" min="0" step="5">
+                    </div>
+
+                    <button id="calculateBtn" class="btn-primary">Calculate Setup</button>
+                </section>
+
+                <!-- Results Section -->
+                <section class="results-section" id="resultsSection" style="display:none;">
+                    <h2>Recommended Suspension Setup</h2>
+                    
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <h3>Fork Setup</h3>
+                            <div class="result-item">
+                                <span class="label">Spring Rate:</span>
+                                <span class="value" id="forkSpringRate">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Compression Damping:</span>
+                                <span class="value" id="forkCompression">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Rebound Damping:</span>
+                                <span class="value" id="forkRebound">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Sag %:</span>
+                                <span class="value" id="forkSag">--</span>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <h3>Shock Setup</h3>
+                            <div class="result-item">
+                                <span class="label">Spring Rate:</span>
+                                <span class="value" id="shockSpringRate">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Compression Damping:</span>
+                                <span class="value" id="shockCompression">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Rebound Damping:</span>
+                                <span class="value" id="shockRebound">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Sag %:</span>
+                                <span class="value" id="shockSag">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <h3>Setup Notes</h3>
+                        <p id="setupNotes">Your personalized setup recommendations will appear here.</p>
+                    </div>
+
+                    <button id="resetBtn" class="btn-secondary">New Setup</button>
+                    <button id="exportBtn" class="btn-secondary">Export Settings</button>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Bike Suspension Calculator | For educational and tuning reference purposes</p>
+        </footer>
+    </div>
+
+    <script src="calculator/utils.js"></script>
+    <script src="calculator/suspension-math.js"></script>
+    <script src="calculator/presets.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
