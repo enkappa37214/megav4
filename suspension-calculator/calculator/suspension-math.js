@@ -1,139 +1,169 @@
-// Suspension Mathematics Module
-// Core calculations for spring rates, damping, and sag
+/**
+ * Suspension Math Module
+ * Calculations for spring rate and damping in suspension systems
+ */
 
 /**
- * Calculate spring rate based on rider weight and suspension travel
- * @param {number} weightInLbs - Rider weight in pounds
- * @param {number} travel - Suspension travel in millimeters
- * @param {string} type - 'fork' or 'shock'
- * @returns {number} Spring rate in Nm/mm
+ * Calculate spring rate (k) from frequency and mass
+ * Formula: k = (2π * f)² * m
+ * @param {number} frequency - Natural frequency in Hz
+ * @param {number} mass - Suspended mass in kg
+ * @returns {number} Spring rate in N/m
  */
-function calculateSpringRate(weightInLbs, travel, type = 'fork') {
-    // Convert lbs to Newtons (1 lbs = 4.448 N)
-    const weightInNewtons = weightInLbs * 4.448;
-    
-    // Convert travel from mm to m
-    const travelInMeters = travel / 1000;
-    
-    // Base calculation: Force / Distance
-    // Adjusted for typical suspension geometry
-    let springRate = (weightInNewtons / travelInMeters) / 1000;
-    
-    // Type-specific adjustments
-    if (type === 'fork') {
-        springRate *= 0.45; // Forks typically use softer springs
-    } else if (type === 'shock') {
-        springRate *= 0.55; // Shocks handle more load
-    }
-    
-    return springRate;
+function calculateSpringRate(frequency, mass) {
+  if (frequency <= 0 || mass <= 0) {
+    throw new Error('Frequency and mass must be positive values');
+  }
+  const omega = 2 * Math.PI * frequency;
+  return Math.pow(omega, 2) * mass;
 }
 
 /**
- * Calculate recommended sag percentage
- * @param {number} travel - Suspension travel in millimeters
- * @param {string} type - 'fork' or 'shock'
- * @returns {number} Sag percentage (typically 25-30%)
+ * Calculate natural frequency from spring rate and mass
+ * Formula: f = (1/2π) * √(k/m)
+ * @param {number} springRate - Spring rate in N/m
+ * @param {number} mass - Suspended mass in kg
+ * @returns {number} Natural frequency in Hz
  */
-function calculateSag(travel, type = 'fork') {
-    // Recommended sag percentages
-    const sagPercentages = {
-        'fork': 25,
-        'shock': 30
-    };
-    
-    return sagPercentages[type] || 25;
+function calculateNaturalFrequency(springRate, mass) {
+  if (springRate <= 0 || mass <= 0) {
+    throw new Error('Spring rate and mass must be positive values');
+  }
+  const omega = Math.sqrt(springRate / mass);
+  return omega / (2 * Math.PI);
 }
 
 /**
- * Calculate damping force based on velocity and damping coefficient
- * @param {number} velocity - Suspension velocity in m/s
- * @param {number} dampingCoefficient - Damping coefficient (0-1)
- * @returns {number} Damping force in Newtons
+ * Calculate damping coefficient from damping ratio and mass/spring rate
+ * Formula: c = 2 * ζ * √(k * m)
+ * @param {number} dampingRatio - Damping ratio (0 to 1 for underdamped)
+ * @param {number} springRate - Spring rate in N/m
+ * @param {number} mass - Suspended mass in kg
+ * @returns {number} Damping coefficient in N·s/m
  */
-function calculateDampingForce(velocity, dampingCoefficient) {
-    // Linear damping model: F = C * v
-    // Where C is the damping coefficient
-    return velocity * dampingCoefficient * 1000;
+function calculateDampingCoefficient(dampingRatio, springRate, mass) {
+  if (dampingRatio < 0 || springRate <= 0 || mass <= 0) {
+    throw new Error('Damping ratio must be non-negative; spring rate and mass must be positive');
+  }
+  const criticalDamping = 2 * Math.sqrt(springRate * mass);
+  return dampingRatio * criticalDamping;
 }
 
 /**
- * Calculate optimal compression damping clicks
- * @param {number} weightInLbs - Rider weight in pounds
- * @param {number} travel - Suspension travel in mm
- * @returns {number} Recommended compression damping clicks
+ * Calculate damping ratio from damping coefficient and spring rate/mass
+ * Formula: ζ = c / (2 * √(k * m))
+ * @param {number} dampingCoefficient - Damping coefficient in N·s/m
+ * @param {number} springRate - Spring rate in N/m
+ * @param {number} mass - Suspended mass in kg
+ * @returns {number} Damping ratio (unitless)
  */
-function calculateCompressionDamping(weightInLbs, travel) {
-    // Base formula: weight factor * travel factor
-    const weightFactor = weightInLbs / 150; // Normalized to 150 lbs
-    const travelFactor = travel / 100; // Normalized to 100mm
-    
-    // Click formula (typically 0-40 clicks)
-    const clicks = Math.round(weightFactor * travelFactor * 15);
-    
-    return Math.max(0, Math.min(clicks, 40));
+function calculateDampingRatio(dampingCoefficient, springRate, mass) {
+  if (dampingCoefficient < 0 || springRate <= 0 || mass <= 0) {
+    throw new Error('Damping coefficient must be non-negative; spring rate and mass must be positive');
+  }
+  const criticalDamping = 2 * Math.sqrt(springRate * mass);
+  return dampingCoefficient / criticalDamping;
 }
 
 /**
- * Calculate optimal rebound damping clicks
- * @param {number} compressionClicks - Compression damping clicks
- * @param {number} ridingStyle - Multiplier based on style (0.8-1.2)
- * @returns {number} Recommended rebound damping clicks
+ * Calculate critical damping coefficient
+ * Formula: c_critical = 2 * √(k * m)
+ * @param {number} springRate - Spring rate in N/m
+ * @param {number} mass - Suspended mass in kg
+ * @returns {number} Critical damping coefficient in N·s/m
  */
-function calculateReboundDamping(compressionClicks, ridingStyleMultiplier = 1.0) {
-    // Rebound is typically 10-20% higher than compression
-    const rebounds = Math.round(compressionClicks * (1.1 + (0.1 * ridingStyleMultiplier)));
-    
-    return Math.max(0, Math.min(rebounds, 40));
+function calculateCriticalDamping(springRate, mass) {
+  if (springRate <= 0 || mass <= 0) {
+    throw new Error('Spring rate and mass must be positive values');
+  }
+  return 2 * Math.sqrt(springRate * mass);
 }
 
 /**
- * Convert between spring rate units
- * @param {number} rate - Spring rate value
- * @param {string} fromUnit - Source unit ('nm', 'lbin', 'lbft')
- * @param {string} toUnit - Target unit ('nm', 'lbin', 'lbft')
- * @returns {number} Converted spring rate
+ * Calculate period of oscillation from frequency
+ * Formula: T = 1 / f
+ * @param {number} frequency - Frequency in Hz
+ * @returns {number} Period in seconds
  */
-function convertSpringRate(rate, fromUnit = 'nm', toUnit = 'lbin') {
-    const conversions = {
-        'nm_lbin': 0.00886,
-        'nm_lbft': 0.0007383,
-        'lbin_nm': 112.985,
-        'lbin_lbft': 0.0833,
-        'lbft_nm': 1355.82,
-        'lbft_lbin': 12
-    };
-    
-    const key = `${fromUnit}_${toUnit}`;
-    if (conversions[key]) {
-        return rate * conversions[key];
-    }
-    return rate;
+function calculatePeriod(frequency) {
+  if (frequency <= 0) {
+    throw new Error('Frequency must be a positive value');
+  }
+  return 1 / frequency;
 }
 
 /**
- * Calculate progressive spring rate effects
- * @param {number} baseRate - Base spring rate
- * @param {number} compressionPercent - Compression percentage (0-100)
- * @returns {number} Effective spring rate at compression point
+ * Classify damping system based on damping ratio
+ * @param {number} dampingRatio - Damping ratio (unitless)
+ * @returns {string} Classification: 'underdamped', 'critically damped', or 'overdamped'
  */
-function calculateProgressiveRate(baseRate, compressionPercent) {
-    // Progressive springs increase in rate as they compress
-    // Typical progression: ~30% increase at 50% compression
-    const progressionFactor = 1 + (0.006 * compressionPercent);
-    return baseRate * progressionFactor;
+function classifyDamping(dampingRatio) {
+  if (dampingRatio < 0) {
+    throw new Error('Damping ratio cannot be negative');
+  }
+  if (dampingRatio < 1) {
+    return 'underdamped';
+  } else if (dampingRatio === 1) {
+    return 'critically damped';
+  } else {
+    return 'overdamped';
+  }
 }
 
 /**
- * Estimate rider sag from spring rate and weight
- * @param {number} springRate - Spring rate (Nm/mm)
- * @param {number} weightInLbs - Rider weight in pounds
- * @param {number} travel - Suspension travel in mm
- * @returns {number} Estimated sag in mm
+ * Calculate deflection under static load
+ * Formula: x = F / k
+ * @param {number} force - Applied force in N
+ * @param {number} springRate - Spring rate in N/m
+ * @returns {number} Deflection in meters
  */
-function estimateSagDistance(springRate, weightInLbs, travel) {
-    const weightInNewtons = weightInLbs * 4.448;
-    const sagDistance = (weightInNewtons / springRate) * 1000;
-    
-    return Math.min(sagDistance, travel);
+function calculateDeflection(force, springRate) {
+  if (springRate <= 0) {
+    throw new Error('Spring rate must be a positive value');
+  }
+  return force / springRate;
+}
+
+/**
+ * Calculate stiffness from two spring rates in series
+ * Formula: k_total = (k1 * k2) / (k1 + k2)
+ * @param {number} springRate1 - First spring rate in N/m
+ * @param {number} springRate2 - Second spring rate in N/m
+ * @returns {number} Combined spring rate in N/m
+ */
+function calculateSeriesSpringRate(springRate1, springRate2) {
+  if (springRate1 <= 0 || springRate2 <= 0) {
+    throw new Error('Spring rates must be positive values');
+  }
+  return (springRate1 * springRate2) / (springRate1 + springRate2);
+}
+
+/**
+ * Calculate stiffness from two spring rates in parallel
+ * Formula: k_total = k1 + k2
+ * @param {number} springRate1 - First spring rate in N/m
+ * @param {number} springRate2 - Second spring rate in N/m
+ * @returns {number} Combined spring rate in N/m
+ */
+function calculateParallelSpringRate(springRate1, springRate2) {
+  if (springRate1 <= 0 || springRate2 <= 0) {
+    throw new Error('Spring rates must be positive values');
+  }
+  return springRate1 + springRate2;
+}
+
+// Export functions for use in Node.js or module systems
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    calculateSpringRate,
+    calculateNaturalFrequency,
+    calculateDampingCoefficient,
+    calculateDampingRatio,
+    calculateCriticalDamping,
+    calculatePeriod,
+    classifyDamping,
+    calculateDeflection,
+    calculateSeriesSpringRate,
+    calculateParallelSpringRate
+  };
 }
